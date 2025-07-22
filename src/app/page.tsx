@@ -8,6 +8,10 @@ const gradients = [
   'from-green-600 via-teal-400 to-cyan-300',
   'from-yellow-600 via-orange-400 to-pink-400',
   'from-rose-600 via-fuchsia-500 to-indigo-500',
+  'from-sky-600 via-blue-400 to-indigo-300',
+  'from-red-600 via-amber-400 to-lime-300',
+  'from-emerald-600 via-teal-300 to-cyan-500',
+  'from-indigo-700 via-violet-500 to-pink-300',
 ];
 
 export default function Home() {
@@ -39,7 +43,7 @@ export default function Home() {
     >
       {/* Rules Tooltip Icon */}
       <button
-        className="absolute top-6 right-6 text-white text-2xl font-bold bg-white/20 p-2 rounded-full hover:bg-white/30 transition cursor-pointer"
+        className="absolute top-6 right-6 text-white text-xl font-bold bg-white/30 backdrop-blur-sm p-3 rounded-full hover:bg-white/50 transition cursor-pointer shadow-lg border border-white/50"
         onClick={() => setShowRules(!showRules)}
         aria-label="Show rules"
       >
@@ -69,7 +73,7 @@ export default function Home() {
       {/* Ask Question Button */}
       <button
         onClick={getRandomQuestion}
-        className="bg-white text-purple-700 font-bold py-4 px-8 rounded-2xl text-xl shadow-2xl hover:bg-purple-100 hover:scale-105 transition-all duration-300 cursor-pointer"
+        className="bg-white text-purple-900 font-bold py-4 px-8 rounded-2xl text-xl shadow-2xl hover:bg-purple-100 hover:scale-105 transition-all duration-300 cursor-pointer"
       >
         Ask a question
       </button>
