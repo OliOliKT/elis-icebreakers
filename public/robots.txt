@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Host
+Host: https://elis-icebreakers.vercel.app
+
+# Sitemaps
+Sitemap: https://elis-icebreakers.vercel.app/sitemap.xml

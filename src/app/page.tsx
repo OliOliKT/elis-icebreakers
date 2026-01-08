@@ -21,7 +21,7 @@ const gradients = [
 
 export default function Home() {
   const [questionsData, setQuestionsData] = useState<QuestionsData>({ safe: [], nsfw: [] });
-  const [safeMode, setSafeMode] = useState<boolean>(true);
+  const [safeMode, setSafeMode] = useState<boolean>(false);
   const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
   const [gradient, setGradient] = useState<string>(gradients[0]);
   const [showRules, setShowRules] = useState(false);
@@ -37,6 +37,26 @@ export default function Home() {
     fetchQuestions();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showRules) {
+        // Check if the click was not on the question mark button or the rules tooltip
+        const target = event.target as HTMLElement;
+        if (!target.closest('[data-rules-button]') && !target.closest('[data-rules-tooltip]')) {
+          setShowRules(false);
+        }
+      }
+    };
+
+    if (showRules) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showRules]);
+
   const getRandomQuestion = () => {
     const availableQuestions = safeMode ? questionsData.safe : [...questionsData.safe, ...questionsData.nsfw];
     if (availableQuestions.length === 0) return;
@@ -51,11 +71,39 @@ export default function Home() {
   };
 
   return (
-    <main
-      className={`min-h-screen flex flex-col items-center justify-center bg-gradient-to-br ${gradient} text-white p-6 relative`}
-    >
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "Eli's Icebreakers",
+            "description": "Interactive question game for breaking the ice at parties, road trips, and social gatherings",
+            "url": "https://elis-icebreakers.vercel.app",
+            "applicationCategory": "Game",
+            "operatingSystem": "Web",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": {
+              "@type": "Person",
+              "name": "Eli"
+            },
+            "keywords": "icebreaker, questions, party games, conversation starters, social games"
+          })
+        }}
+      />
+      <main
+        className={`min-h-screen flex flex-col items-center justify-center bg-gradient-to-br ${gradient} text-white p-6 relative`}
+        role="main"
+        aria-label="Eli's Icebreakers Game"
+      >
       {/* Rules Tooltip Icon */}
       <button
+        data-rules-button
         className="absolute top-6 right-6 text-white text-xl font-bold bg-white/30 backdrop-blur-sm w-12 h-12 rounded-full hover:bg-white/50 transition cursor-pointer shadow-lg border border-white/50 flex items-center justify-center"
         onClick={() => setShowRules(!showRules)}
         aria-label="Show rules"
@@ -85,7 +133,7 @@ export default function Home() {
 
       {/* Rules Tooltip */}
       {showRules && (
-        <div className="absolute top-20 right-6 bg-white text-gray-800 p-4 rounded-xl shadow-xl w-80 text-sm z-10">
+        <div data-rules-tooltip className="absolute top-20 right-6 bg-white text-gray-800 p-4 rounded-xl shadow-xl w-80 text-sm z-10">
           <h2 className="font-bold mb-2">How to play</h2>
           <p>
             This game is called <strong>Eli's Icebreakers</strong>. Just click the button and answer the
@@ -103,24 +151,41 @@ export default function Home() {
       )}
 
       {/* Title */}
-      <h1 className="text-5xl font-extrabold mb-8 drop-shadow-lg text-center animate-pulse">
-        Eli's Icebreakers
-      </h1>
+      <header className="text-center">
+        <h1 className="text-5xl font-extrabold mb-8 drop-shadow-lg animate-pulse">
+          Eli's Icebreakers
+        </h1>
+      </header>
 
       {/* Ask Question Button */}
-      <button
-        onClick={getRandomQuestion}
-        className="bg-white text-purple-900 font-bold py-4 px-8 rounded-2xl text-xl shadow-2xl hover:bg-purple-100 hover:scale-105 transition-all duration-300 cursor-pointer"
-      >
+      <section className="text-center">
+        <button
+          onClick={getRandomQuestion}
+          className="bg-white text-purple-900 font-bold py-4 px-8 rounded-2xl text-xl shadow-2xl hover:bg-purple-100 hover:scale-105 transition-all duration-300 cursor-pointer"
+          aria-describedby="question-count"
+        >
         Ask a question
       </button>
+      <p id="question-count" className="mt-2 text-sm opacity-75">
+        {safeMode 
+          ? `${questionsData.safe.length} family-friendly questions available`
+          : `${questionsData.safe.length + questionsData.nsfw.length} total questions available`
+        }
+      </p>
+      </section>
 
       {/* Question Output */}
       {currentQuestion && (
-        <div className="mt-12 max-w-3xl text-center text-2xl bg-white/90 text-purple-900 p-8 rounded-3xl shadow-2xl backdrop-blur-sm animate-fade-in">
+        <section 
+          className="mt-12 max-w-3xl text-center text-2xl bg-white/90 text-purple-900 p-8 rounded-3xl shadow-2xl backdrop-blur-sm animate-fade-in"
+          aria-live="polite"
+          aria-label="Current question"
+        >
+          <h2 className="sr-only">Question:</h2>
           {currentQuestion}
-        </div>
+        </section>
       )}
     </main>
+    </>
   );
 }
