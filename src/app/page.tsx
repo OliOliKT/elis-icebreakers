@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from 'react';
 
+interface QuestionsData {
+  safe: string[];
+  nsfw: string[];
+}
+
 const gradients = [
   'from-purple-700 via-pink-500 to-red-400',
   'from-blue-700 via-indigo-500 to-purple-400',
@@ -15,7 +20,8 @@ const gradients = [
 ];
 
 export default function Home() {
-  const [questions, setQuestions] = useState<string[]>([]);
+  const [questionsData, setQuestionsData] = useState<QuestionsData>({ safe: [], nsfw: [] });
+  const [safeMode, setSafeMode] = useState<boolean>(true);
   const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
   const [gradient, setGradient] = useState<string>(gradients[0]);
   const [showRules, setShowRules] = useState(false);
@@ -23,8 +29,8 @@ export default function Home() {
   useEffect(() => {
     const fetchQuestions = async () => {
       const res = await fetch('/questions.json');
-      const data = await res.json();
-      setQuestions(data);
+      const data: QuestionsData = await res.json();
+      setQuestionsData(data);
     };
 
     setGradient(gradients[Math.floor(Math.random() * gradients.length)]);
@@ -32,9 +38,16 @@ export default function Home() {
   }, []);
 
   const getRandomQuestion = () => {
-    if (questions.length === 0) return;
-    const randomIndex = Math.floor(Math.random() * questions.length);
-    setCurrentQuestion(questions[randomIndex]);
+    const availableQuestions = safeMode ? questionsData.safe : [...questionsData.safe, ...questionsData.nsfw];
+    if (availableQuestions.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+    setCurrentQuestion(availableQuestions[randomIndex]);
+  };
+
+  const toggleSafeMode = () => {
+    setSafeMode(!safeMode);
+    // Clear current question when switching modes
+    setCurrentQuestion(null);
   };
 
   return (
@@ -43,24 +56,48 @@ export default function Home() {
     >
       {/* Rules Tooltip Icon */}
       <button
-        className="absolute top-6 right-6 text-white text-xl font-bold bg-white/30 backdrop-blur-sm p-3 rounded-full hover:bg-white/50 transition cursor-pointer shadow-lg border border-white/50"
+        className="absolute top-6 right-6 text-white text-xl font-bold bg-white/30 backdrop-blur-sm w-12 h-12 rounded-full hover:bg-white/50 transition cursor-pointer shadow-lg border border-white/50 flex items-center justify-center"
         onClick={() => setShowRules(!showRules)}
         aria-label="Show rules"
       >
         ?
       </button>
 
+      {/* Safe Mode Toggle */}
+      <div className="absolute top-6 left-6 flex items-center space-x-3 bg-white/30 backdrop-blur-sm px-4 py-3 rounded-full shadow-lg border border-white/50">
+        <button
+          onClick={toggleSafeMode}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer ${
+            safeMode ? 'bg-green-400' : 'bg-red-400'
+          }`}
+          aria-label={`Turn ${safeMode ? 'off' : 'on'} safe mode`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+              safeMode ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+        <span className="text-sm font-medium whitespace-nowrap">
+          {safeMode ? 'Family-friendly mode' : 'Uncensored mode'}
+        </span>
+      </div>
+
       {/* Rules Tooltip */}
       {showRules && (
         <div className="absolute top-20 right-6 bg-white text-gray-800 p-4 rounded-xl shadow-xl w-80 text-sm z-10">
           <h2 className="font-bold mb-2">How to play</h2>
           <p>
-            This game is called <strong>Eli’s Icebreakers</strong>. Just click the button and answer the
+            This game is called <strong>Eli's Icebreakers</strong>. Just click the button and answer the
             question that pops up - honestly, weirdly, or with flair.
           </p>
           <p className="mt-2">
             Great for road trips, parties, awkward silences, or getting to know people better. Some
             questions are deep, some are dumb, and some may get you canceled. Use responsibly.
+          </p>
+          <p className="mt-3 text-xs text-gray-600 border-t pt-2">
+            <strong>Safe Mode:</strong> When enabled, only family-friendly questions are shown. 
+            Turn it off to include all questions, including NSFW content.
           </p>
         </div>
       )}
