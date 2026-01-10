@@ -25,6 +25,7 @@ export default function Home() {
   const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
   const [gradient, setGradient] = useState<string>(gradients[0]);
   const [showRules, setShowRules] = useState(false);
+  const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -58,16 +59,36 @@ export default function Home() {
   }, [showRules]);
 
   const getRandomQuestion = () => {
-    const availableQuestions = safeMode ? questionsData.safe : [...questionsData.safe, ...questionsData.nsfw];
-    if (availableQuestions.length === 0) return;
+    const allAvailableQuestions = safeMode ? questionsData.safe : [...questionsData.safe, ...questionsData.nsfw];
+    if (allAvailableQuestions.length === 0) return;
+    
+    // Filter out recent questions to avoid repetition
+    let availableQuestions = allAvailableQuestions.filter(question => !recentQuestions.includes(question));
+    
+    // If we've exhausted all non-recent questions, reset and use all questions
+    if (availableQuestions.length === 0) {
+      availableQuestions = allAvailableQuestions;
+      setRecentQuestions([]); // Clear the recent questions list
+    }
+    
     const randomIndex = Math.floor(Math.random() * availableQuestions.length);
-    setCurrentQuestion(availableQuestions[randomIndex]);
+    const selectedQuestion = availableQuestions[randomIndex];
+    
+    setCurrentQuestion(selectedQuestion);
+    
+    // Update recent questions list (keep last 25)
+    setRecentQuestions(prev => {
+      const updated = [selectedQuestion, ...prev];
+      return updated.slice(0, 25); // Keep only the last 25 questions
+    });
   };
 
   const toggleSafeMode = () => {
     setSafeMode(!safeMode);
     // Clear current question when switching modes
     setCurrentQuestion(null);
+    // Clear recent questions when switching modes to avoid cross-mode conflicts
+    setRecentQuestions([]);
   };
 
   return (
