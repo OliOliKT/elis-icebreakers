@@ -8,15 +8,36 @@ interface QuestionsData {
 }
 
 const gradients = [
-  'from-purple-700 via-pink-500 to-red-400',
-  'from-blue-700 via-indigo-500 to-purple-400',
-  'from-green-600 via-teal-400 to-cyan-300',
-  'from-yellow-600 via-orange-400 to-pink-400',
-  'from-rose-600 via-fuchsia-500 to-indigo-500',
-  'from-sky-600 via-blue-400 to-indigo-300',
-  'from-red-600 via-amber-400 to-lime-300',
-  'from-emerald-600 via-teal-300 to-cyan-500',
-  'from-indigo-700 via-violet-500 to-pink-300',
+  'from-purple-800 via-pink-600 to-red-500',
+  'from-blue-800 via-indigo-600 to-purple-500',
+  'from-green-700 via-teal-500 to-cyan-400',
+  'from-yellow-700 via-orange-500 to-pink-500',
+  'from-rose-700 via-fuchsia-600 to-indigo-600',
+  'from-sky-700 via-blue-500 to-indigo-400',
+  'from-red-700 via-amber-500 to-lime-400',
+  'from-emerald-700 via-teal-400 to-cyan-600',
+  'from-indigo-800 via-violet-600 to-pink-400',
+  'from-slate-800 via-gray-600 to-blue-400',
+  'from-orange-700 via-red-500 to-pink-400',
+  'from-violet-800 via-purple-600 to-fuchsia-500',
+  'from-teal-800 via-green-600 to-lime-500',
+  'from-pink-700 via-rose-500 to-orange-400',
+  'from-cyan-800 via-blue-600 to-purple-500',
+  'from-lime-700 via-yellow-500 to-orange-400',
+  'from-fuchsia-800 via-pink-600 to-red-500',
+  'from-amber-700 via-yellow-500 to-green-400',
+  'from-emerald-800 via-cyan-600 to-blue-500',
+  'from-rose-800 via-red-600 to-amber-500',
+  'from-indigo-700 via-blue-500 to-cyan-400',
+  'from-purple-700 via-violet-500 to-pink-400',
+  'from-blue-700 via-cyan-500 to-teal-400',
+  'from-green-800 via-emerald-600 to-teal-500',
+  'from-red-800 via-rose-600 to-pink-500',
+  'from-yellow-800 via-amber-600 to-orange-500',
+  'from-violet-700 via-fuchsia-500 to-rose-400',
+  'from-slate-700 via-zinc-500 to-gray-400',
+  'from-orange-800 via-amber-600 to-yellow-500',
+  'from-teal-700 via-cyan-500 to-blue-400',
 ];
 
 export default function Home() {
@@ -125,7 +146,7 @@ export default function Home() {
       {/* Rules Tooltip Icon */}
       <button
         data-rules-button
-        className="absolute top-6 right-6 text-white text-xl font-bold bg-white/30 backdrop-blur-sm w-12 h-12 rounded-full hover:bg-white/50 transition cursor-pointer shadow-lg border border-white/50 flex items-center justify-center"
+        className="absolute top-6 right-6 text-white text-xl font-bold bg-black/50 backdrop-blur-sm w-12 h-12 rounded-full hover:bg-black/60 transition cursor-pointer shadow-lg border border-white/40 flex items-center justify-center"
         onClick={() => setShowRules(!showRules)}
         aria-label="Show rules"
       >
@@ -133,7 +154,7 @@ export default function Home() {
       </button>
 
       {/* Safe Mode Toggle */}
-      <div className="absolute top-6 left-6 flex items-center space-x-3 bg-white/30 backdrop-blur-sm px-4 py-3 rounded-full shadow-lg border border-white/50">
+      <div className="absolute top-6 left-6 flex items-center space-x-3 bg-black/50 backdrop-blur-sm px-4 py-3 rounded-full shadow-lg border border-white/40">
         <button
           onClick={toggleSafeMode}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer ${
