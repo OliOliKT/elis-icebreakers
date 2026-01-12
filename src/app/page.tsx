@@ -165,7 +165,7 @@ export default function Home() {
             questions are deep, some are dumb, and some may get you canceled. Use responsibly.
           </p>
           <p className="mt-3 text-xs text-gray-600 border-t pt-2">
-            <strong>Safe Mode:</strong> When enabled, only family-friendly questions are shown. 
+            <strong>Family-friendly mode:</strong> When enabled, only family-friendly questions are shown. 
             Turn it off to include all questions, including NSFW content.
           </p>
         </div>

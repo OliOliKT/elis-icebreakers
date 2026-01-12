@@ -28,6 +28,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+  },
   openGraph: {
     title: "Eli's Icebreakers - Fun Question Game",
     description: "Break the ice with fun and engaging questions! Perfect for parties, road trips, and getting to know people better.",
