@@ -139,9 +139,10 @@ export default function Home() {
         }}
       />
       <main
-        className={`min-h-screen flex flex-col items-center justify-center bg-gradient-to-br ${gradient} text-white p-6 relative`}
+        className={`min-h-screen flex flex-col items-center justify-start bg-gradient-to-br ${gradient} text-white p-6 relative`}
         role="main"
         aria-label="Eli's Icebreakers Game"
+        style={{ paddingTop: 'max(35vh, 200px)' }}
       >
       {/* Rules Tooltip Icon */}
       <button
@@ -192,41 +193,45 @@ export default function Home() {
         </div>
       )}
 
-      {/* Title */}
-      <header className="text-center">
-        <h1 className="text-5xl font-extrabold mb-8 drop-shadow-lg animate-pulse">
-          Eli's Icebreakers
-        </h1>
-      </header>
+      {/* Fixed Header Section */}
+      <div className="w-full max-w-4xl flex flex-col items-center">
+        {/* Title */}
+        <header className="text-center">
+          <h1 className="text-5xl font-extrabold mb-8 drop-shadow-lg animate-pulse">
+            Eli's Icebreakers
+          </h1>
+        </header>
 
-      {/* Ask Question Button */}
-      <section className="text-center">
-        <button
-          onClick={getRandomQuestion}
-          className="bg-white text-purple-900 font-bold py-4 px-8 rounded-2xl text-xl shadow-2xl hover:bg-purple-100 hover:scale-105 transition-all duration-300 cursor-pointer"
-          aria-describedby="question-count"
-        >
-        Ask a question
-      </button>
-      <p id="question-count" className="mt-2 text-sm opacity-75">
-        {safeMode 
-          ? `${questionsData.safe.length} family-friendly questions available`
-          : `${questionsData.safe.length + questionsData.nsfw.length} total questions available`
-        }
-      </p>
-      </section>
-
-      {/* Question Output */}
-      {currentQuestion && (
-        <section 
-          className="mt-12 max-w-3xl text-center text-2xl bg-white/90 text-purple-900 p-8 rounded-3xl shadow-2xl backdrop-blur-sm animate-fade-in"
-          aria-live="polite"
-          aria-label="Current question"
-        >
-          <h2 className="sr-only">Question:</h2>
-          {currentQuestion}
+        {/* Ask Question Button */}
+        <section className="text-center">
+          <button
+            onClick={getRandomQuestion}
+            className="bg-white text-purple-900 font-bold py-4 px-8 rounded-2xl text-xl shadow-2xl hover:bg-purple-100 hover:scale-105 transition-all duration-300 cursor-pointer"
+            aria-describedby="question-count"
+          >
+          Ask a question
+        </button>
+        <p id="question-count" className="mt-2 text-sm opacity-75">
+          {safeMode 
+            ? `${questionsData.safe.length} family-friendly questions available`
+            : `${questionsData.safe.length + questionsData.nsfw.length} total questions available`
+          }
+        </p>
         </section>
-      )}
+
+        {/* Question Output - positioned to grow downward only */}
+        {currentQuestion && (
+          <section 
+            className="mt-12 w-full max-w-3xl text-center text-2xl bg-white/90 text-purple-900 p-8 rounded-3xl shadow-2xl backdrop-blur-sm animate-fade-in"
+            aria-live="polite"
+            aria-label="Current question"
+            style={{ minHeight: 'auto' }}
+          >
+            <h2 className="sr-only">Question:</h2>
+            {currentQuestion}
+          </section>
+        )}
+      </div>
     </main>
     </>
   );
