@@ -142,7 +142,7 @@ export default function Home() {
         className={`min-h-screen flex flex-col items-center justify-start bg-gradient-to-br ${gradient} text-white p-6 relative`}
         role="main"
         aria-label="Eli's Icebreakers Game"
-        style={{ paddingTop: 'max(35vh, 200px)' }}
+        style={{ paddingTop: 'max(30vh, 180px)' }}
       >
       {/* Rules Tooltip Icon */}
       <button
