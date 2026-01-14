@@ -97,10 +97,10 @@ export default function Home() {
     
     setCurrentQuestion(selectedQuestion);
     
-    // Update recent questions list (keep last 25)
+    // Update recent questions list (keep last 45)
     setRecentQuestions(prev => {
       const updated = [selectedQuestion, ...prev];
-      return updated.slice(0, 25); // Keep only the last 25 questions
+      return updated.slice(0, 45); // Keep only the last 45 questions
     });
   };
 
