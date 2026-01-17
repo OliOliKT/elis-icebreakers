@@ -1,9 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function PWAManager() {
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
+    // Ensure we're only running on the client after hydration
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Only run PWA logic after component is mounted (post-hydration)
+    if (!isMounted) return;
     // Register service worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -78,7 +87,7 @@ export default function PWAManager() {
       }
     });
 
-  }, []);
+  }, [isMounted]);
 
   return null; // This component doesn't render anything visible
 }

@@ -17,7 +17,6 @@ const gradients = [
   'from-red-700 via-amber-500 to-lime-400',
   'from-emerald-700 via-teal-400 to-cyan-600',
   'from-indigo-800 via-violet-600 to-pink-400',
-  'from-slate-800 via-gray-600 to-blue-400',
   'from-orange-700 via-red-500 to-pink-400',
   'from-violet-800 via-purple-600 to-fuchsia-500',
   'from-teal-800 via-green-600 to-lime-500',
@@ -47,6 +46,11 @@ export default function Home() {
   const [gradient, setGradient] = useState<string>(gradients[0]);
   const [showRules, setShowRules] = useState(false);
   const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
+  const [isLightningMode, setIsLightningMode] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(20);
+  const [lightningScore, setLightningScore] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
+  const [showMobileToggles, setShowMobileToggles] = useState(false);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -57,27 +61,56 @@ export default function Home() {
 
     setGradient(gradients[Math.floor(Math.random() * gradients.length)]);
     fetchQuestions();
+    setIsMounted(true);
   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      
+      // Handle rules tooltip
       if (showRules) {
-        // Check if the click was not on the question mark button or the rules tooltip
-        const target = event.target as HTMLElement;
         if (!target.closest('[data-rules-button]') && !target.closest('[data-rules-tooltip]')) {
           setShowRules(false);
         }
       }
+      
+      // Handle mobile toggles
+      if (showMobileToggles) {
+        if (!target.closest('[data-mobile-toggles-button]') && !target.closest('[data-mobile-toggles-panel]')) {
+          setShowMobileToggles(false);
+        }
+      }
     };
 
-    if (showRules) {
+    if (showRules || showMobileToggles) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showRules]);
+  }, [showRules, showMobileToggles]);
+
+  // Lightning mode timer effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (isLightningMode && timeLeft > 0 && currentQuestion) {
+      timer = setTimeout(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (isLightningMode && timeLeft === 0 && currentQuestion) {
+      // Auto advance to next question when time runs out
+      getRandomQuestion();
+      setTimeLeft(20);
+      setLightningScore(prev => prev + 1);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isLightningMode, timeLeft, currentQuestion]);
 
   const getRandomQuestion = () => {
     const allAvailableQuestions = safeMode ? questionsData.safe : [...questionsData.safe, ...questionsData.nsfw];
@@ -97,6 +130,11 @@ export default function Home() {
     
     setCurrentQuestion(selectedQuestion);
     
+    // Reset timer for lightning mode
+    if (isLightningMode) {
+      setTimeLeft(20);
+    }
+    
     // Update recent questions list (keep last 45)
     setRecentQuestions(prev => {
       const updated = [selectedQuestion, ...prev];
@@ -111,6 +149,33 @@ export default function Home() {
     // Clear recent questions when switching modes to avoid cross-mode conflicts
     setRecentQuestions([]);
   };
+
+  const startLightningMode = () => {
+    setIsLightningMode(true);
+    setLightningScore(0);
+    setTimeLeft(20);
+    getRandomQuestion();
+  };
+
+  const endLightningMode = () => {
+    setIsLightningMode(false);
+    setCurrentQuestion(null);
+    setTimeLeft(20);
+  };
+
+  // Handle lightning mode toggle
+  useEffect(() => {
+    if (isLightningMode) {
+      setLightningScore(0);
+      setTimeLeft(20);
+      if (!currentQuestion) {
+        getRandomQuestion();
+      }
+    } else {
+      setCurrentQuestion(null);
+      setTimeLeft(20);
+    }
+  }, [isLightningMode]);
 
   return (
     <>
@@ -154,25 +219,116 @@ export default function Home() {
         ?
       </button>
 
-      {/* Safe Mode Toggle */}
-      <div className="absolute top-6 left-6 flex items-center space-x-3 bg-black/50 backdrop-blur-sm px-4 py-3 rounded-full shadow-lg border border-white/40">
+      {/* Mobile Toggle Button (only on small screens) */}
+      {isMounted && (
         <button
-          onClick={toggleSafeMode}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer ${
-            safeMode ? 'bg-green-400' : 'bg-red-400'
-          }`}
-          aria-label={`Turn ${safeMode ? 'off' : 'on'} safe mode`}
+          data-mobile-toggles-button
+          className="sm:hidden absolute top-6 left-6 text-white text-xl font-bold bg-black/50 backdrop-blur-sm w-12 h-12 rounded-full hover:bg-black/60 transition cursor-pointer shadow-lg border border-white/40 flex items-center justify-center"
+          onClick={() => setShowMobileToggles(!showMobileToggles)}
+          aria-label="Toggle settings"
         >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-              safeMode ? 'translate-x-6' : 'translate-x-1'
-            }`}
-          />
+          ☰
         </button>
-        <span className="text-sm font-medium whitespace-nowrap">
-          {safeMode ? 'Family-friendly mode' : 'Uncensored mode'}
-        </span>
-      </div>
+      )}
+
+      {/* Desktop Toggles (hidden on small screens) */}
+      {isMounted && (
+        <div className="hidden sm:flex absolute top-6 left-6 items-center space-x-6 bg-black/50 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg border border-white/40">
+          {/* Safe Mode */}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={toggleSafeMode}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer ${
+                safeMode ? 'bg-green-400' : 'bg-red-400'
+              }`}
+              aria-label={`Turn ${safeMode ? 'off' : 'on'} safe mode`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  safeMode ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className="text-sm font-medium whitespace-nowrap">
+              Family-friendly mode {safeMode ? '(ON)' : '(OFF)'}
+            </span>
+          </div>
+          
+          {/* Lightning Mode */}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setIsLightningMode(!isLightningMode)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer ${
+                isLightningMode ? 'bg-green-400' : 'bg-red-400'
+              }`}
+              aria-label={`Turn ${isLightningMode ? 'off' : 'on'} lightning mode`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  isLightningMode ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className="text-sm font-medium whitespace-nowrap">
+              {isLightningMode ? `⚡ Lightning mode (${lightningScore})` : '⚡ Lightning mode (OFF)'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Toggles Panel */}
+      {isMounted && showMobileToggles && (
+        <div 
+          data-mobile-toggles-panel 
+          className="sm:hidden absolute top-20 left-6 bg-white text-gray-800 p-4 rounded-xl shadow-xl w-72 text-sm z-10"
+        >
+          <h3 className="font-bold mb-3">Settings</h3>
+          
+          {/* Safe Mode */}
+          <div className="flex items-center justify-between mb-4 pb-3 border-b">
+            <div>
+              <div className="font-medium">Family-friendly mode</div>
+              <div className="text-xs text-gray-600">Filter inappropriate content</div>
+            </div>
+            <button
+              onClick={toggleSafeMode}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer ${
+                safeMode ? 'bg-green-400' : 'bg-red-400'
+              }`}
+              aria-label={`Turn ${safeMode ? 'off' : 'on'} safe mode`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  safeMode ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          
+          {/* Lightning Mode */}
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium">⚡ Lightning mode</div>
+              <div className="text-xs text-gray-600">
+                {isLightningMode ? `Fast-paced mode (Score: ${lightningScore})` : 'Fast-paced 20-second timers'}
+              </div>
+            </div>
+            <button
+              onClick={() => setIsLightningMode(!isLightningMode)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 cursor-pointer ${
+                isLightningMode ? 'bg-green-400' : 'bg-red-400'
+              }`}
+              aria-label={`Turn ${isLightningMode ? 'off' : 'on'} lightning mode`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  isLightningMode ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Rules Tooltip */}
       {showRules && (
@@ -190,6 +346,10 @@ export default function Home() {
             <strong>Family-friendly mode:</strong> When enabled, only family-friendly questions are shown. 
             Turn it off to include all questions, including NSFW content.
           </p>
+          <p className="mt-2 text-xs text-gray-600 border-t pt-2">
+            <strong>⚡ Lightning mode:</strong> Fast-paced question game with 20-second timers. 
+            Questions auto-advance when time runs out. Perfect for high-energy party moments!
+          </p>
         </div>
       )}
 
@@ -204,13 +364,23 @@ export default function Home() {
 
         {/* Ask Question Button */}
         <section className="text-center">
-          <button
-            onClick={getRandomQuestion}
-            className="bg-white text-purple-900 font-bold py-4 px-8 rounded-2xl text-xl shadow-2xl hover:bg-purple-100 hover:scale-105 transition-all duration-300 cursor-pointer"
-            aria-describedby="question-count"
-          >
-          Ask a question
-        </button>
+          {!isLightningMode ? (
+            <button
+              onClick={getRandomQuestion}
+              className="bg-white text-purple-900 font-bold py-4 px-8 rounded-2xl text-xl shadow-2xl hover:bg-purple-100 hover:scale-105 transition-all duration-300 cursor-pointer"
+              aria-describedby="question-count"
+            >
+              Ask a question
+            </button>
+          ) : (
+            <button
+              onClick={getRandomQuestion}
+              className="bg-yellow-400 text-black font-bold py-4 px-8 rounded-2xl text-xl shadow-2xl hover:bg-yellow-300 hover:scale-105 transition-all duration-300 cursor-pointer"
+              aria-describedby="question-count"
+            >
+              Next Question ⚡
+            </button>
+          )}
         <p id="question-count" className="mt-2 text-sm opacity-75">
           {safeMode 
             ? `${questionsData.safe.length} family-friendly questions available`
@@ -222,11 +392,16 @@ export default function Home() {
         {/* Question Output - positioned to grow downward only */}
         {currentQuestion && (
           <section 
-            className="mt-12 w-full max-w-3xl text-center text-2xl bg-white/90 text-purple-900 p-8 rounded-3xl shadow-2xl backdrop-blur-sm animate-fade-in"
+            className={`mt-12 w-full max-w-3xl text-center text-2xl ${isLightningMode ? 'bg-yellow-100/90 text-yellow-900' : 'bg-white/90 text-purple-900'} p-8 rounded-3xl shadow-2xl backdrop-blur-sm animate-fade-in relative`}
             aria-live="polite"
             aria-label="Current question"
             style={{ minHeight: 'auto' }}
           >
+            {isMounted && isLightningMode && (
+              <div className={`absolute top-4 right-4 text-lg font-bold ${timeLeft <= 3 ? 'text-red-600 animate-pulse' : 'text-yellow-700'}`}>
+                {timeLeft}s
+              </div>
+            )}
             <h2 className="sr-only">Question:</h2>
             {currentQuestion}
           </section>
