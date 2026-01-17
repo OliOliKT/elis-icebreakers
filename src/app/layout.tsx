@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import PWAManager from "../components/PWAManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,10 +32,13 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
     ],
     shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
+  manifest: '/site.webmanifest',
   openGraph: {
     title: "Eli's Icebreakers - Fun Question Game",
     description: "Break the ice with fun and engaging questions! Perfect for parties, road trips, and getting to know people better.",
@@ -66,6 +70,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <PWAManager />
         {children}
       </body>
     </html>
