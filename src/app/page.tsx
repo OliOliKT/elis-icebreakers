@@ -48,9 +48,9 @@ export default function Home() {
   const [recentQuestions, setRecentQuestions] = useState<string[]>([]);
   const [isLightningMode, setIsLightningMode] = useState(false);
   const [timeLeft, setTimeLeft] = useState(20);
-  const [lightningScore, setLightningScore] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
   const [showMobileToggles, setShowMobileToggles] = useState(false);
+  const [intermissionCount, setIntermissionCount] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -94,23 +94,39 @@ export default function Home() {
 
   // Lightning mode timer effect
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    
-    if (isLightningMode && timeLeft > 0 && currentQuestion) {
-      timer = setTimeout(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    } else if (isLightningMode && timeLeft === 0 && currentQuestion) {
-      // Auto advance to next question when time runs out
-      getRandomQuestion();
-      setTimeLeft(20);
-      setLightningScore(prev => prev + 1);
-    }
+  let timer: NodeJS.Timeout;
 
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [isLightningMode, timeLeft, currentQuestion]);
+  // Normal lightning countdown
+  if (isLightningMode && timeLeft > 0 && currentQuestion && intermissionCount === null) {
+    timer = setTimeout(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+  }
+
+  // When main timer hits 0 → start intermission
+  else if (isLightningMode && timeLeft === 0 && currentQuestion && intermissionCount === null) {
+    setIntermissionCount(3);
+  }
+
+  // Intermission countdown
+  else if (isLightningMode && intermissionCount !== null && intermissionCount > 0) {
+    timer = setTimeout(() => {
+      setIntermissionCount(prev => (prev !== null ? prev - 1 : null));
+    }, 1000);
+  }
+
+  // Intermission finished → next question
+  else if (isLightningMode && intermissionCount === 0) {
+    setIntermissionCount(null);
+    setTimeLeft(20);
+    getRandomQuestion();
+  }
+
+  return () => {
+    if (timer) clearTimeout(timer);
+  };
+}, [isLightningMode, timeLeft, currentQuestion, intermissionCount]);
+
 
   const getRandomQuestion = () => {
     const allAvailableQuestions = safeMode ? questionsData.safe : [...questionsData.safe, ...questionsData.nsfw];
@@ -150,23 +166,9 @@ export default function Home() {
     setRecentQuestions([]);
   };
 
-  const startLightningMode = () => {
-    setIsLightningMode(true);
-    setLightningScore(0);
-    setTimeLeft(20);
-    getRandomQuestion();
-  };
-
-  const endLightningMode = () => {
-    setIsLightningMode(false);
-    setCurrentQuestion(null);
-    setTimeLeft(20);
-  };
-
   // Handle lightning mode toggle
   useEffect(() => {
     if (isLightningMode) {
-      setLightningScore(0);
       setTimeLeft(20);
       if (!currentQuestion) {
         getRandomQuestion();
@@ -270,7 +272,7 @@ export default function Home() {
               />
             </button>
             <span className="text-sm font-medium whitespace-nowrap">
-              {isLightningMode ? `⚡ Lightning mode (${lightningScore})` : '⚡ Lightning mode (OFF)'}
+              {isLightningMode ? `⚡ Lightning mode (ON)` : '⚡ Lightning mode (OFF)'}
             </span>
           </div>
         </div>
@@ -310,7 +312,7 @@ export default function Home() {
             <div>
               <div className="font-medium">⚡ Lightning mode</div>
               <div className="text-xs text-gray-600">
-                {isLightningMode ? `Fast-paced mode (Score: ${lightningScore})` : 'Fast-paced 20-second timers'}
+                {isLightningMode ? `Fast-paced mode` : 'Fast-paced 20-second timers'}
               </div>
             </div>
             <button
@@ -392,18 +394,34 @@ export default function Home() {
         {/* Question Output - positioned to grow downward only */}
         {currentQuestion && (
           <section 
-            className={`mt-12 w-full max-w-3xl text-center text-2xl ${isLightningMode ? 'bg-yellow-100/90 text-yellow-900' : 'bg-white/90 text-purple-900'} p-8 rounded-3xl shadow-2xl backdrop-blur-sm animate-fade-in relative`}
-            aria-live="polite"
-            aria-label="Current question"
-            style={{ minHeight: 'auto' }}
+            className={`mt-12 w-full max-w-3xl text-center text-2xl ${
+              isLightningMode
+                ? 'bg-yellow-100/90 text-yellow-900 pt-14 pb-8 px-8'
+                : 'bg-white/90 text-purple-900 p-8'
+            } rounded-3xl shadow-2xl backdrop-blur-sm animate-fade-in relative`}
           >
             {isMounted && isLightningMode && (
-              <div className={`absolute top-4 right-4 text-lg font-bold ${timeLeft <= 3 ? 'text-red-600 animate-pulse' : 'text-yellow-700'}`}>
-                {timeLeft}s
+              <div
+                className={`absolute top-4 left-1/2 -translate-x-1/2 text-xl font-extrabold tracking-wide ${
+                  timeLeft <= 3 && intermissionCount === null
+                    ? 'text-red-600 animate-pulse'
+                    : 'text-yellow-700'
+                }`}
+              >
+                {intermissionCount !== null
+                  ? 'Next question in…'
+                  : `${timeLeft} ${timeLeft === 1 ? 'second' : 'seconds'}`}
               </div>
             )}
+
             <h2 className="sr-only">Question:</h2>
-            {currentQuestion}
+            {intermissionCount !== null ? (
+              <span className="text-3xl font-extrabold">
+                {intermissionCount}
+              </span>
+            ) : (
+              currentQuestion
+            )}
           </section>
         )}
       </div>
